@@ -9,7 +9,7 @@ CXXFLAGS = -std=c++14 $(OPT) -march=native -funroll-loops -DNDEBUG  $(INC)
 
 # INCLUDE PATHS AND PACKAGE SPECIFIC FLAGS
 # ------------------------------------------------------------------------------------ #
-EIGENROOT = /Users/roman/Downloads/eigen-master
+EIGENROOT = /Users/sonderrj/Applications/eigen
 
 BLAZEROOT = /Users/roman/Downloads/blaze-3.7
 
@@ -63,7 +63,7 @@ endif
 all:
 # 	$(FC) views_loops.f90 -o out_floops.exe $(FCFLAGS)
 # 	$(FC) views_vectorised.f90 -o out_fvec.exe $(FCFLAGS)
-#	$(CXX) views_eigen.cpp -o out_cpp_eigen.exe $(CXXFLAGS) -I$(EIGENROOT)
+	$(CXX) views_eigen.cpp -o out_cpp_eigen.exe $(CXXFLAGS) -I$(EIGENROOT)
 #	$(CXX) views_blaze.cpp -o out_cpp_blaze.exe $(CXXFLAGS) -I$(BLAZEROOT)
 #	$(CXX) views_fastor.cpp -o out_cpp_fastor.exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS)
 #	$(CXX) views_armadillo.cpp -o out_cpp_armadillo.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS)
@@ -73,7 +73,7 @@ run:
 # 	./out_c.exe $(N)
 # 	./out_floops.exe $(N)
 # 	./out_fvec.exe $(N)
-#	./out_cpp_eigen.exe $(N)
+	./out_cpp_eigen.exe $(N)
 #	./out_cpp_blaze.exe $(N)
 #	./out_cpp_fastor.exe $(N)
 #	./out_cpp_armadillo.exe $(N)
