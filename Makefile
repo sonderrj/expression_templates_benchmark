@@ -1,5 +1,6 @@
 N=100
 
+CXX := g++ 
 OPT = -O3
 INC = -I.
 CCFLAGS = -Ofast -march=native -funroll-loops -DNDEBUG -fwhole-program #-flto
