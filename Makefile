@@ -15,10 +15,10 @@ BLAZEROOT = /Users/roman/Downloads/blaze-3.7
 ARMAROOT = /Users/roman/Downloads/armadillo-9.850.1
 ARMA_FLAGS = -DARMA_NO_DEBUG -lblas -llapack
 
-XSIMDROOT = /Users/roman/Downloads/xsimd
-XTLROOT = /Users/roman/Downloads/xtl
-XTENSORROOT = /Users/roman/Downloads/xtensor
-XTENSORBLASROOT = /Users/roman/Downloads/xtensor-blas
+XSIMDROOT = /Users/sonderrj/Applications/xsimd
+XTLROOT = /Users/sonderrj/Applications/xtl
+XTENSORROOT = /Users/sonderrj/Applications/xtensor
+XTENSORBLASROOT = /Users/sonderrj/Applications/xtensor_blas
 XTENSOR_FLAGS = -I$(XSIMDROOT)/include/ -I$(XTLROOT)/include/ -I$(XTENSORROOT)/include/ -I$(XTENSORBLASROOT)/include/
 XTENSOR_FLAGS += -DXTENSOR_USE_XSIMD -lblas -llapack
 
@@ -62,20 +62,20 @@ endif
 all:
 # 	$(FC) views_loops.f90 -o out_floops.exe $(FCFLAGS)
 # 	$(FC) views_vectorised.f90 -o out_fvec.exe $(FCFLAGS)
-	$(CXX) views_eigen.cpp -o out_cpp_eigen.exe $(CXXFLAGS) -I$(EIGENROOT)
-	$(CXX) views_blaze.cpp -o out_cpp_blaze.exe $(CXXFLAGS) -I$(BLAZEROOT)
-	$(CXX) views_fastor.cpp -o out_cpp_fastor.exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS)
-	$(CXX) views_armadillo.cpp -o out_cpp_armadillo.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS)
+#	$(CXX) views_eigen.cpp -o out_cpp_eigen.exe $(CXXFLAGS) -I$(EIGENROOT)
+#	$(CXX) views_blaze.cpp -o out_cpp_blaze.exe $(CXXFLAGS) -I$(BLAZEROOT)
+#	$(CXX) views_fastor.cpp -o out_cpp_fastor.exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS)
+#	$(CXX) views_armadillo.cpp -o out_cpp_armadillo.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS)
 	$(CXX) views_xtensor.cpp -o out_cpp_xtensor.exe $(CXXFLAGS) $(XTENSOR_INC) $(XTENSOR_FLAGS)
 
 run:
 # 	./out_c.exe $(N)
 # 	./out_floops.exe $(N)
 # 	./out_fvec.exe $(N)
-	./out_cpp_eigen.exe $(N)
-	./out_cpp_blaze.exe $(N)
-	./out_cpp_fastor.exe $(N)
-	./out_cpp_armadillo.exe $(N)
+#	./out_cpp_eigen.exe $(N)
+#	./out_cpp_blaze.exe $(N)
+#	./out_cpp_fastor.exe $(N)
+#	./out_cpp_armadillo.exe $(N)
 	./out_cpp_xtensor.exe $(N)
 
 clean:
