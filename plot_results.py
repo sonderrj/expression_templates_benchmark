@@ -47,10 +47,12 @@ def run_command(command):
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT,
                          shell=True)
-    return iter(p.stdout.readline, b'')
+    #print(p.stdout.readlines())
+    return p.stdout.readlines()
 
 def main():
 
+    N = "100"
     num_iter = 50
     exes = ["./out_cpp_eigen.exe", "./out_cpp_xtensor.exe"]
 
@@ -58,9 +60,10 @@ def main():
     for exe in exes:
         mean_elapsed = 0.
         for i in range(num_iter):
-            for counter, line in enumerate(run_command(exe + " 100")):
+            for counter, line in enumerate(run_command(exe + " " + N)):
                 if counter == 2:
                     line = str(line)
+                    #print(line.split(" "))
                     sline = line.split(" ")[4]
                     elapsed = float(sline)
                     mean_elapsed += elapsed
@@ -85,7 +88,7 @@ def main():
     plt.bar(y_pos, performance, align='center', alpha=0.5)
     plt.xticks(y_pos, objects)
     plt.ylabel('Time in seconds')
-    plt.title('Performance of views')
+    plt.title('Performance of views' + " " + "N = " + N)
     # plt.title('Compilation time of views')
     plt.grid(True)
 
