@@ -11,10 +11,11 @@ CXXFLAGS = -std=c++14 $(OPT) -march=native -funroll-loops -DNDEBUG  $(INC)
 # ------------------------------------------------------------------------------------ #
 EIGENROOT = /Users/sonderrj/Applications/eigen
 
-BLAZEROOT = /Users/roman/Downloads/blaze-3.7
+BLAZEROOT = /Users/sonderrj/Applications/blaze-3.8.1/include
 
-ARMAROOT = /Users/roman/Downloads/armadillo-9.850.1
-ARMA_FLAGS = -DARMA_NO_DEBUG -lblas -llapack
+ARMAROOT = /Users/sonderrj/Applications/armadillo-11.2.3
+# ARMA_FLAGS = -DARMA_NO_DEBUG -lblas -llapack
+ARMA_FLAGS = -DARMA_NO_DEBUG -larmadillo
 
 XSIMDROOT = /Users/sonderrj/Applications/xsimd
 XTLROOT = /Users/sonderrj/Applications/xtl
@@ -23,7 +24,7 @@ XTENSORBLASROOT = /Users/sonderrj/Applications/xtensor_blas
 XTENSOR_FLAGS = -I$(XSIMDROOT)/include/ -I$(XTLROOT)/include/ -I$(XTENSORROOT)/include/ -I$(XTENSORBLASROOT)/include/
 XTENSOR_FLAGS += -DXTENSOR_USE_XSIMD -lblas -llapack
 
-FASTORROOT = /Users/roman/Dropbox/zHandies_Docs/Fastor/
+FASTORROOT = /Users/sonderrj/Applications/Fastor/
 FASTOR_FLAGS = -DFASTOR_NO_ALIAS -DFASTOR_DISPATCH_DIV_TO_MUL_EXPR
 # ------------------------------------------------------------------------------------ #
 
@@ -64,9 +65,9 @@ all:
 # 	$(FC) views_loops.f90 -o out_floops.exe $(FCFLAGS)
 # 	$(FC) views_vectorised.f90 -o out_fvec.exe $(FCFLAGS)
 	$(CXX) views_eigen.cpp -o out_cpp_eigen.exe $(CXXFLAGS) -I$(EIGENROOT)
-#	$(CXX) views_blaze.cpp -o out_cpp_blaze.exe $(CXXFLAGS) -I$(BLAZEROOT)
-#	$(CXX) views_fastor.cpp -o out_cpp_fastor.exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS)
-#	$(CXX) views_armadillo.cpp -o out_cpp_armadillo.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS)
+	$(CXX) views_blaze.cpp -o out_cpp_blaze.exe $(CXXFLAGS) -I$(BLAZEROOT)
+	$(CXX) views_fastor.cpp -o out_cpp_fastor.exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS)
+	$(CXX) views_armadillo.cpp -o out_cpp_armadillo.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ -L$(ARMAROOT)/lib $(ARMA_FLAGS)
 	$(CXX) views_xtensor.cpp -o out_cpp_xtensor.exe $(CXXFLAGS) $(XTENSOR_INC) $(XTENSOR_FLAGS)
 
 run:
@@ -74,9 +75,9 @@ run:
 # 	./out_floops.exe $(N)
 # 	./out_fvec.exe $(N)
 	./out_cpp_eigen.exe $(N)
-#	./out_cpp_blaze.exe $(N)
-#	./out_cpp_fastor.exe $(N)
-#	./out_cpp_armadillo.exe $(N)
+	./out_cpp_blaze.exe $(N)
+	./out_cpp_fastor.exe $(N)
+	./out_cpp_armadillo.exe $(N)
 	./out_cpp_xtensor.exe $(N)
 
 clean:

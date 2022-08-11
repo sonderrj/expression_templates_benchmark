@@ -52,9 +52,9 @@ def run_command(command):
 
 def main():
 
-    N = "100"
+    N = "1000"
     num_iter = 50
-    exes = ["./out_cpp_eigen.exe", "./out_cpp_xtensor.exe"]
+    exes = ["./out_cpp_eigen.exe", "./out_cpp_blaze.exe", "./out_cpp_fastor.exe", "./out_cpp_armadillo.exe", "./out_cpp_xtensor.exe"]
 
     performance = []
     for exe in exes:
@@ -82,7 +82,7 @@ def main():
     # performance = [4.49, 6.73, 2.54, 3.45, 13.77] # compilation time
 
     # objects = ('Eigen', 'Blaze', 'Fastor')
-    objects = ('Eigen', 'XTensor')
+    objects = ('Eigen', 'Blaze', 'Fastor', 'Armadillo', 'XTensor')
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, performance, align='center', alpha=0.5)
@@ -92,6 +92,7 @@ def main():
     # plt.title('Compilation time of views')
     plt.grid(True)
 
+    plt.savefig("./experiment_data/double_" + N + ".png")
     plt.show()
 
 
