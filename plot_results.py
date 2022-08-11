@@ -52,7 +52,7 @@ def run_command(command):
 def main():
 
     num_iter = 50
-    exes = ["./out_cpp_eigen.exe", "./out_cpp_blaze.exe", "./out_cpp_fastor.exe", "./out_cpp_armadillo.exe", "./out_cpp_xtensor.exe"]
+    exes = ["./out_cpp_eigen.exe", "./out_cpp_xtensor.exe"]
 
     performance = []
     for exe in exes:
@@ -79,7 +79,7 @@ def main():
     # performance = [4.49, 6.73, 2.54, 3.45, 13.77] # compilation time
 
     # objects = ('Eigen', 'Blaze', 'Fastor')
-    objects = ('Eigen', 'Blaze', 'Fastor', 'Armadillo', 'XTensor')
+    objects = ('Eigen', 'XTensor')
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, performance, align='center', alpha=0.5)
