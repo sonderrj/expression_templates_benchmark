@@ -1,4 +1,5 @@
 N=100
+NUMERICAL_VERSION = FLOAT_VERSION
 
 CXX = clang++
 OPT = -O3
@@ -9,20 +10,22 @@ CXXFLAGS = -std=c++14 $(OPT) -march=native -funroll-loops -DNDEBUG  $(INC)
 
 # INCLUDE PATHS AND PACKAGE SPECIFIC FLAGS
 # ------------------------------------------------------------------------------------ #
-EIGENROOT = /Users/sonderrj/Applications/eigen
+EIGENROOT = /Users/sonderrj/Applications/eigen-3.4/include/eigen3
+EIGEN_FLAGS = -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
 
 BLAZEROOT = /Users/sonderrj/Applications/blaze-3.8.1/include
+BLAZE_FLAGS = -DBLAZE_BLAS_MODE=1 -DBLAZE_USE_BLAS_MATRIX_VECTOR_MULTIPLICATION=1 -DBLAZE_USE_BLAS_MATRIX_MATRIX_MULTIPLICATION=1 -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
 
-ARMAROOT = /Users/sonderrj/Applications/armadillo-11.2.3
+ARMAROOT = /Users/sonderrj/operating_space/armadillo-11.2.3
 # ARMA_FLAGS = -DARMA_NO_DEBUG -lblas -llapack
-ARMA_FLAGS = -DARMA_NO_DEBUG -larmadillo
+ARMA_FLAGS = -DARMA_NO_DEBUG -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
 
 XSIMDROOT = /Users/sonderrj/Applications/xsimd
 XTLROOT = /Users/sonderrj/Applications/xtl
 XTENSORROOT = /Users/sonderrj/Applications/xtensor
 XTENSORBLASROOT = /Users/sonderrj/Applications/xtensor_blas
 XTENSOR_FLAGS = -I$(XSIMDROOT)/include/ -I$(XTLROOT)/include/ -I$(XTENSORROOT)/include/ -I$(XTENSORBLASROOT)/include/
-XTENSOR_FLAGS += -DXTENSOR_USE_XSIMD -lblas -llapack
+XTENSOR_FLAGS += -DXTENSOR_USE_XSIMD -lopenblas -llapack -DHAVE_BLAS=1 -L/opt/homebrew/opt/openblas/lib
 
 FASTORROOT = /Users/sonderrj/Applications/Fastor/
 FASTOR_FLAGS = -DFASTOR_NO_ALIAS -DFASTOR_DISPATCH_DIV_TO_MUL_EXPR
@@ -64,21 +67,23 @@ endif
 all:
 # 	$(FC) views_loops.f90 -o out_floops.exe $(FCFLAGS)
 # 	$(FC) views_vectorised.f90 -o out_fvec.exe $(FCFLAGS)
-	$(CXX) views_eigen.cpp -o out_cpp_eigen.exe $(CXXFLAGS) -I$(EIGENROOT)
-	$(CXX) views_blaze.cpp -o out_cpp_blaze.exe $(CXXFLAGS) -I$(BLAZEROOT)
-	$(CXX) views_fastor.cpp -o out_cpp_fastor.exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS)
-	$(CXX) views_armadillo.cpp -o out_cpp_armadillo.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ -L$(ARMAROOT)/lib $(ARMA_FLAGS)
-	$(CXX) views_xtensor.cpp -o out_cpp_xtensor.exe $(CXXFLAGS) $(XTENSOR_INC) $(XTENSOR_FLAGS)
+	$(CXX) views_eigen.cpp -o out_cpp_eigen_built_in_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(EIGENROOT) -D$(NUMERICAL_VERSION)
+	$(CXX) views_eigen.cpp -o out_cpp_eigen_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(EIGENROOT) $(EIGEN_FLAGS) -D$(NUMERICAL_VERSION)
+	$(CXX) views_blaze.cpp -o out_cpp_blaze_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(BLAZEROOT) $(BLAZE_FLAGS) -D$(NUMERICAL_VERSION)
+	$(CXX) views_fastor.cpp -o out_cpp_fastor_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS) -D$(NUMERICAL_VERSION)
+	$(CXX) views_armadillo.cpp -o out_cpp_armadillo_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS) -D$(NUMERICAL_VERSION)
+	$(CXX) views_xtensor.cpp -o out_cpp_xtensor_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) $(XTENSOR_INC) $(XTENSOR_FLAGS) -D$(NUMERICAL_VERSION)
 
 run:
 # 	./out_c.exe $(N)
 # 	./out_floops.exe $(N)
 # 	./out_fvec.exe $(N)
-	./out_cpp_eigen.exe $(N)
-	./out_cpp_blaze.exe $(N)
-	./out_cpp_fastor.exe $(N)
-	./out_cpp_armadillo.exe $(N)
-	./out_cpp_xtensor.exe $(N)
+	./out_cpp_eigen_built_in_$(NUMERICAL_VERSION).exe $(N)
+	./out_cpp_eigen_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
+	./out_cpp_blaze_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
+	./out_cpp_fastor_$(NUMERICAL_VERSION).exe $(N)
+	./out_cpp_armadillo_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
+	./out_cpp_xtensor_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
 
 clean:
 	rm -rf *.exe

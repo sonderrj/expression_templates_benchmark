@@ -52,9 +52,9 @@ def run_command(command):
 
 def main():
 
-    N = "1000"
+    N = "100"
     num_iter = 50
-    exes = ["./out_cpp_eigen.exe", "./out_cpp_blaze.exe", "./out_cpp_fastor.exe", "./out_cpp_armadillo.exe", "./out_cpp_xtensor.exe"]
+    exes = ["./out_cpp_eigen_built_in.exe", "./out_cpp_eigen_openblas_lapack.exe", "./out_cpp_blaze_openblas_lapack.exe", "./out_cpp_fastor.exe", "./out_cpp_armadillo_openblas_lapack.exe", "./out_cpp_xtensor_openblas_lapack.exe"]
 
     performance = []
     for exe in exes:
@@ -82,17 +82,17 @@ def main():
     # performance = [4.49, 6.73, 2.54, 3.45, 13.77] # compilation time
 
     # objects = ('Eigen', 'Blaze', 'Fastor')
-    objects = ('Eigen', 'Blaze', 'Fastor', 'Armadillo', 'XTensor')
+    objects = ('Eigen\n(built-in)', 'Eigen\n(openblas)', 'Blaze\n(openblas)', 'Fastor\n(built-in)', 'Armadillo\n(openblas)', 'XTensor\n(openblas)')
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, performance, align='center', alpha=0.5)
     plt.xticks(y_pos, objects)
     plt.ylabel('Time in seconds')
-    plt.title('Performance of views' + " " + "N = " + N)
+    plt.title('Performance of views' + " " + "(N = " + N + " double)")
     # plt.title('Compilation time of views')
     plt.grid(True)
 
-    plt.savefig("./experiment_data/double_" + N + ".png")
+    plt.savefig("./experiment_data/no_simd_double_" + N + ".png")
     plt.show()
 
 

@@ -69,7 +69,11 @@ void run_finite_difference() {
 
 int main(int argc, char *argv[]) {
 
+#ifdef DOUBLE_VERSION
     using T = double;
+#elif defined(FLOAT_VERSION)
+    using T = float;
+#endif
     int N;
     if (argc == 2) {
        N = atoi(argv[1]);
@@ -86,6 +90,7 @@ int main(int argc, char *argv[]) {
     if (N==100) run_finite_difference<T,100>();
     if (N==150) run_finite_difference<T,150>();
     if (N==200) run_finite_difference<T,200>();
+    //if (N==1000) run_finite_difference<T,1000>();
     t_j.toc();
 
     return 0;
