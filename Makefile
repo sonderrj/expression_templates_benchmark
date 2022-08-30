@@ -1,15 +1,35 @@
-N=100
-NUMERICAL_VERSION = FLOAT_VERSION
+# ---data display control zone---
+## ---picture---
+X_PLOT = "Eigen(openblas)" "Blaze(openblas)" # 加括号要用双引号引起来
+EXECS =	./out_cpp_eigen_openblas_lapack.exe ./out_cpp_blaze_openblas_lapack.exe
+Y_PLOT = "seconds in time" # 中间有空格也要用双引号引起来
+TITLE = "view of performance"
+PIC_FILENAME = test1.png
+## ---可执行文件参数---
+SIZE=100
+NUMERICAL_VERSION = DOUBLE
 
+# ---end data display control zone---
+
+# ---compiler control zone---
+## ---CXX---
 CXX = clang++
-OPT = -O3
-INC = -I.
-CCFLAGS = -Ofast -march=native -funroll-loops -DNDEBUG -fwhole-program #-flto
-FCFLAGS = -Ofast -march=native -funroll-loops -DNDEBUG -fwhole-program #-flto
-CXXFLAGS = -std=c++14 $(OPT) -march=native -funroll-loops -DNDEBUG  $(INC)
+## ---optimazition flags---
+LANG_STD_FLAG = -std=c++14
+O_FLAG = -O3
+ULOOP_FLAG = -funroll-loops
+INLINE_FLAG = -mllvm -inline-threshold=10000000
+SIMD_FLAG = -ffp-contract=fast
+OHTHER_FLAGS = -ftemplate-depth=10000000 -fconstexpr-depth=10000000 -foperator-arrow-depth=10000000
+## ---compile target--- 
+TARGET_FLAGS = --target=arm64-apple-macosx12.5.1 -mcpu=apple-m1
+## ---debug or release---
+DEBUG_OR_RELEASE = -DNDEBUG
 
-# INCLUDE PATHS AND PACKAGE SPECIFIC FLAGS
-# ------------------------------------------------------------------------------------ #
+CXXFLAGS = $(LANG_STD_FLAG) $(O_FLAG) $(ULOOP_FLAG) $(INLINE_FLAG) $(SIMD_FLAG) $(OHTHER_FLAGS) $(TARGET_FLAGS) $(DEBUG_OR_RELEASE)
+# ---end compiler control zone---
+
+# ---dependent lib zone---
 EIGENROOT = /Users/sonderrj/Applications/eigen-3.4/include/eigen3
 EIGEN_FLAGS = -DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
 
@@ -17,8 +37,7 @@ BLAZEROOT = /Users/sonderrj/Applications/blaze-3.8.1/include
 BLAZE_FLAGS = -DBLAZE_BLAS_MODE=1 -DBLAZE_USE_BLAS_MATRIX_VECTOR_MULTIPLICATION=1 -DBLAZE_USE_BLAS_MATRIX_MATRIX_MULTIPLICATION=1 -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
 
 ARMAROOT = /Users/sonderrj/operating_space/armadillo-11.2.3
-# ARMA_FLAGS = -DARMA_NO_DEBUG -lblas -llapack
-ARMA_FLAGS = -DARMA_NO_DEBUG -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
+ARMA_FLAGS = -DUSE_NORM_BY_LAPACK -DARMA_NO_DEBUG -lopenblas -llapack -L/opt/homebrew/opt/openblas/lib -L/opt/homebrew/opt/lapack/lib -I/opt/homebrew/opt/openblas/include -I/opt/homebrew/opt/lapack/include
 
 XSIMDROOT = /Users/sonderrj/Applications/xsimd
 XTLROOT = /Users/sonderrj/Applications/xtl
@@ -29,61 +48,18 @@ XTENSOR_FLAGS += -DXTENSOR_USE_XSIMD -lopenblas -llapack -DHAVE_BLAS=1 -L/opt/ho
 
 FASTORROOT = /Users/sonderrj/Applications/Fastor/
 FASTOR_FLAGS = -DFASTOR_NO_ALIAS -DFASTOR_DISPATCH_DIV_TO_MUL_EXPR
-# ------------------------------------------------------------------------------------ #
+# ---end dependent lib zone---
 
+compile:
+#	$(CXX) views_eigen.cpp -o out_cpp_eigen_built_in.exe $(CXXFLAGS) -I$(EIGENROOT) -D$(NUMERICAL_VERSION)
+	$(CXX) views_eigen.cpp -o out_cpp_eigen_openblas_lapack.exe $(CXXFLAGS) -I$(EIGENROOT) $(EIGEN_FLAGS) 
+#	$(CXX) views_blaze.cpp -o out_cpp_blaze_openblas_lapack.exe $(CXXFLAGS) -I$(BLAZEROOT) $(BLAZE_FLAGS) -D$(NUMERICAL_VERSION)
+#	$(CXX) views_fastor.cpp -o out_cpp_fastor_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS) -D$(NUMERICAL_VERSION)
+#	$(CXX) views_armadillo.cpp -o out_cpp_armadillo_openblas_lapack.exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS) -D$(NUMERICAL_VERSION)
+#	$(CXX) views_xtensor.cpp -o out_cpp_xtensor_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) $(XTENSOR_INC) $(XTENSOR_FLAGS) -D$(NUMERICAL_VERSION)
 
-ifeq "$(CXX)" "g++"
-	CXXFLAGS += -finline-functions -finline-limit=1000000 -ffp-contract=fast
-endif
-ifeq "$(CXX)" "g++-9"
-	CXXFLAGS += -finline-functions -finline-limit=1000000 -ffp-contract=fast
-endif
-ifeq "$(CXX)" "/usr/local/bin/g++-9"
-	CXXFLAGS += -finline-functions -finline-limit=1000000 -ffp-contract=fast
-endif
-
-CL_REC_DEPTH = 10000000
-ifeq "$(CXX)" "clang++"
-	CXXFLAGS += -ftemplate-depth=$(CL_REC_DEPTH) -fconstexpr-depth=$(CL_REC_DEPTH) -foperator-arrow-depth=$(CL_REC_DEPTH)
-	CXXFLAGS += -mllvm -inline-threshold=$(CL_REC_DEPTH) -ffp-contract=fast
-endif
-ifeq "$(CXX)" "c++"
-	CXXFLAGS += -ftemplate-depth=$(CL_REC_DEPTH) -fconstexpr-depth=$(CL_REC_DEPTH) -foperator-arrow-depth=$(CL_REC_DEPTH)
-	CXXFLAGS += -mllvm -inline-threshold=$(CL_REC_DEPTH) -ffp-contract=fast
-endif
-
-ifeq "$(CXX)" "icpc"
-	CXXFLAGS += -inline-forceinline -fp-model fast=2
-endif
-
-# On some architectures -march=native does not define -mfma
-HAS_FMA := $(shell $(CXX) -march=native -dM -E - < /dev/null | egrep "AVX2" | sort)
-ifeq ($(HAS_FMA),)
-else
-CXXFLAGS += -mfma
-endif
-
-
-all:
-# 	$(FC) views_loops.f90 -o out_floops.exe $(FCFLAGS)
-# 	$(FC) views_vectorised.f90 -o out_fvec.exe $(FCFLAGS)
-	$(CXX) views_eigen.cpp -o out_cpp_eigen_built_in_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(EIGENROOT) -D$(NUMERICAL_VERSION)
-	$(CXX) views_eigen.cpp -o out_cpp_eigen_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(EIGENROOT) $(EIGEN_FLAGS) -D$(NUMERICAL_VERSION)
-	$(CXX) views_blaze.cpp -o out_cpp_blaze_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(BLAZEROOT) $(BLAZE_FLAGS) -D$(NUMERICAL_VERSION)
-	$(CXX) views_fastor.cpp -o out_cpp_fastor_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(FASTORROOT) $(FASTOR_FLAGS) -D$(NUMERICAL_VERSION)
-	$(CXX) views_armadillo.cpp -o out_cpp_armadillo_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) -I$(ARMAROOT)/include/ $(ARMA_FLAGS) -D$(NUMERICAL_VERSION)
-	$(CXX) views_xtensor.cpp -o out_cpp_xtensor_openblas_lapack_$(NUMERICAL_VERSION).exe $(CXXFLAGS) $(XTENSOR_INC) $(XTENSOR_FLAGS) -D$(NUMERICAL_VERSION)
-
-run:
-# 	./out_c.exe $(N)
-# 	./out_floops.exe $(N)
-# 	./out_fvec.exe $(N)
-	./out_cpp_eigen_built_in_$(NUMERICAL_VERSION).exe $(N)
-	./out_cpp_eigen_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
-	./out_cpp_blaze_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
-	./out_cpp_fastor_$(NUMERICAL_VERSION).exe $(N)
-	./out_cpp_armadillo_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
-	./out_cpp_xtensor_openblas_lapack_$(NUMERICAL_VERSION).exe $(N)
+plot:
+	python3.9 ./plot_results.py  --xplot $(X_PLOT) --yplot $(Y_PLOT) --title $(TITLE) --size $(SIZE) --precision $(NUMERICAL_VERSION) --execs $(EXECS) --filename $(PIC_FILENAME)
 
 clean:
 	rm -rf *.exe

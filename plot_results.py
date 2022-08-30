@@ -2,6 +2,7 @@ from __future__ import print_function
 import os, platform, sys, subprocess
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 plt.rcdefaults()
 
 
@@ -52,15 +53,28 @@ def run_command(command):
 
 def main():
 
-    N = "100"
-    num_iter = 50
-    exes = ["./out_cpp_eigen_built_in.exe", "./out_cpp_eigen_openblas_lapack.exe", "./out_cpp_blaze_openblas_lapack.exe", "./out_cpp_fastor.exe", "./out_cpp_armadillo_openblas_lapack.exe", "./out_cpp_xtensor_openblas_lapack.exe"]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--xplot",                     help = "x plot string", nargs = '+')
+    parser.add_argument("--yplot",     type = str,     help = "y plot string")
+    parser.add_argument("--title",     type = str,     help = "plot title")
+    parser.add_argument("--size",      type = str,     help = "matrix size")
+    parser.add_argument("--precision", type = str,     help = "numeracal precision")
+    parser.add_argument("--execs",                     help = "execs string", nargs = '+')
+    parser.add_argument("--filename",     type = str,     help = "picture filename")
+    args = parser.parse_args()
+    # args.delimiter.encode().decode('unicode_escape')
 
+    print(args.precision)
+
+    size = args.size
+    num_iter = 1
+    # execs = ["./out_cpp_eigen_built_in.exe", "./out_cpp_eigen_openblas_lapack.exe", "./out_cpp_blaze_openblas_lapack.exe", "./out_cpp_fastor.exe", "./out_cpp_armadillo_openblas_lapack.exe", "./out_cpp_xtensor_openblas_lapack.exe"]
+    execs = args.execs
     performance = []
-    for exe in exes:
+    for exe in execs:
         mean_elapsed = 0.
         for i in range(num_iter):
-            for counter, line in enumerate(run_command(exe + " " + N)):
+            for counter, line in enumerate(run_command(exe + " " + size)):
                 if counter == 2:
                     line = str(line)
                     #print(line.split(" "))
@@ -81,18 +95,16 @@ def main():
 
     # performance = [4.49, 6.73, 2.54, 3.45, 13.77] # compilation time
 
-    # objects = ('Eigen', 'Blaze', 'Fastor')
-    objects = ('Eigen\n(built-in)', 'Eigen\n(openblas)', 'Blaze\n(openblas)', 'Fastor\n(built-in)', 'Armadillo\n(openblas)', 'XTensor\n(openblas)')
+    objects = args.xplot
     y_pos = np.arange(len(objects))
 
     plt.bar(y_pos, performance, align='center', alpha=0.5)
     plt.xticks(y_pos, objects)
-    plt.ylabel('Time in seconds')
-    plt.title('Performance of views' + " " + "(N = " + N + " double)")
-    # plt.title('Compilation time of views')
+    plt.ylabel(args.yplot)
+    plt.title(args.title)
     plt.grid(True)
 
-    plt.savefig("./experiment_data/no_simd_double_" + N + ".png")
+    plt.savefig(args.filename)
     plt.show()
 
 

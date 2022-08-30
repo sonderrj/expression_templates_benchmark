@@ -3,34 +3,6 @@
 using namespace arma;
 using namespace bench_views;
 
-#define USE_DEFAULT 0
-
-
-template<typename T, int num>
-T finite_difference_seq_impl(typename Mat<T>::template fixed<num,num> &u) {
-
-    typename Mat<T>::template fixed<num,num> u_old = u;
-    constexpr int last = num;
-
-    u(span(1,num-2),span(1,num-2)) =
-        ((  u_old(span(0,num-3),span(1,num-2)) + u_old(span(2,num-1),span(1,num-2)) +
-            u_old(span(1,num-2),span(0,num-3)) + u_old(span(1,num-2),span(2,num-1)) )*4.0 +
-            u_old(span(0,num-3),span(0,num-3)) + u_old(span(0,num-3),span(2,num-1)) +
-            u_old(span(2,num-1),span(0,num-3)) + u_old(span(2,num-1),span(2,num-1)) ) /20.0;
-
-#if USE_DEFAULT
-    return norm(u-u_old);
-#else
-    T err = 0.;
-    for (auto i=0; i<num; ++i) {
-        for (auto j=0; j<num; ++j) {
-            const auto tmp = u(j,i) - u_old(j,i);
-            err += tmp*tmp;
-        }
-    }
-    return std::sqrt(err);
-#endif
-}
 
 template<typename T, int num>
 void run_finite_difference() {
@@ -50,11 +22,29 @@ void run_finite_difference() {
     u.fill(T(0));
     u.col(0) = sin(x);
     u.col(num-1) = sin(x)*std::exp(-pi);
-
+    asm("#BEGINN");
     while (iter <100000 && err>1e-6) {
-        err = finite_difference_seq_impl<T,num>(u);
+        typename Mat<T>::template fixed<num,num> u_old = u;
+        u(span(1,num-2),span(1,num-2)) =
+        ((  u_old(span(0,num-3),span(1,num-2)) + u_old(span(2,num-1),span(1,num-2)) +
+            u_old(span(1,num-2),span(0,num-3)) + u_old(span(1,num-2),span(2,num-1)) )*4.0 +
+            u_old(span(0,num-3),span(0,num-3)) + u_old(span(0,num-3),span(2,num-1)) +
+            u_old(span(2,num-1),span(0,num-3)) + u_old(span(2,num-1),span(2,num-1)) ) /20.0;
+#ifdef USE_NORM_BY_LAPACK
+        err = norm(u - u_old);
+#elif defined(USE_NORM_BY_MYSELF) 
+        err = 0.;
+        for (auto i=0; i<num; ++i) {
+            for (auto j=0; j<num; ++j) {
+                const auto tmp = u(j,i) - u_old(j,i);
+                err += tmp*tmp;
+            }
+        }
+        err = std::sqrt(err);
+#endif
         iter++;
     }
+    asm("#ENDD");
 
     println(" Relative error is: ", err, '\n');
     println("Number of iterations: ", iter, '\n');

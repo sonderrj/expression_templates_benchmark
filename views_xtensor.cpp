@@ -1,67 +1,17 @@
 #include "helper.h"
+#include "cmdline.h"
 #include <xsimd/xsimd.hpp>
 #include <xtensor/xtensor.hpp>
 #include <xtensor/xfixed.hpp>
 #include <xtensor/xview.hpp>
 #include <xtensor/xnorm.hpp>
 #include <xtensor-blas/xlinalg.hpp>
+#include <iostream>
 
+using namespace std;
 using namespace bench_views;
 
 #define USE_DEFAULT 0
-
-
-template<typename T, size_t nn>
-T finite_difference_seq_impl(xt::xtensor_fixed<T, xt::xshape<nn,nn>> &u) {
-    using xt::view;
-    using xt::range;
-
-    xt::xtensor_fixed<T, xt::xshape<nn,nn>> u_old = u;
-    constexpr int num = nn;
-
-    view(u,range(1,num-1),range(1,num-1)) =
-        ((  view(u_old,range(0,num-2),range(1,num-1)) + view(u_old,range(2,num-0),range(1,num-1)) +
-            view(u_old,range(1,num-1),range(0,num-2)) + view(u_old,range(1,num-1),range(2,num-0)) )*4.0 +
-            view(u_old,range(0,num-2),range(0,num-2)) + view(u_old,range(0,num-2),range(2,num-0)) +
-            view(u_old,range(2,num-0),range(0,num-2)) + view(u_old,range(2,num-0),range(2,num-0)) ) /20.0;
-
-#if USE_DEFAULT
-    // xt::xtensor_fixed<T, xt::xshape<nn,nn>> tmp = u-u_old;
-    // return xt::linalg::norm(tmp);
-    return xt::linalg::norm(u-u_old);
-#else
-    T err = 0.;
-    for (auto i=0; i<num; ++i) {
-        for (auto j=0; j<num; ++j) {
-            const auto tmp = u(i,j) - u_old(i,j);
-            err += tmp*tmp;
-        }
-    }
-    return std::sqrt(err);
-
-    // SIMD impl - not used to be fair with armadillo
-    // using xsimd::load_unaligned;
-    // constexpr std::size_t simd_size = xsimd::simd_type<T>::size;
-    // const T* u_data = u.data();
-    // const T* u_old_data = u_old.data();
-    // xsimd::batch<T, simd_size> vec_err(T(0));
-    // T err = 0;
-    // for(std::size_t i = 0; i < num; ++i) {
-    //     std::size_t j = 0;
-    //     for(; j < num; j += simd_size) {
-    //         auto u_vec     = load_unaligned(&u_data[i*num+j]);
-    //         auto u_old_vec = load_unaligned(&u_old_data[i*num+j]);
-    //         xsimd::batch<T, simd_size> diff = u_vec - u_old_vec;
-    //         vec_err = xsimd::fma(diff,diff,vec_err);
-    //     }
-    //     for(; j < num; ++j) {
-    //         auto diff = u(i,j) - u_old(i,j);
-    //         err += diff*diff;
-    //     }
-    // }
-    // return std::sqrt(xsimd::hadd(vec_err) + err);
-#endif
-}
 
 
 template<typename T, int num>
@@ -80,42 +30,59 @@ void run_finite_difference() {
     u = xt::zeros<T>({num,num});
     xt::col(u,0) = xt::sin(x);
     xt::col(u,num-1) = sin(x)*std::exp(-pi);
-
+    // asm("#BEGINN");
     while (iter <100000 && err>1e-6) {
-        err = finite_difference_seq_impl<T,num>(u);;
+        using xt::view;
+        using xt::range;
+
+        xt::xtensor_fixed<T, xt::xshape<num,num>> u_old = u;
+
+        view(u,range(1,num-1),range(1,num-1)) =
+            ((  view(u_old,range(0,num-2),range(1,num-1)) + view(u_old,range(2,num-0),range(1,num-1)) +
+                view(u_old,range(1,num-1),range(0,num-2)) + view(u_old,range(1,num-1),range(2,num-0)) )*4.0 +
+                view(u_old,range(0,num-2),range(0,num-2)) + view(u_old,range(0,num-2),range(2,num-0)) +
+                view(u_old,range(2,num-0),range(0,num-2)) + view(u_old,range(2,num-0),range(2,num-0)) ) /20.0;
+
+        err = xt::linalg::norm(u-u_old);
         iter++;
     }
-
-    println(" Relative error is: ", err, '\n');
-    println("Number of iterations: ", iter, '\n');
+    // asm("#ENDD");
+    // println(" Relative error is: ", err, '\n');
+    // println("Number of iterations: ", iter, '\n');
 }
 
 
 int main(int argc, char *argv[]) {
 
-#ifdef DOUBLE_VERSION
-    using T = double;
-#elif defined(FLOAT_VERSION)
-    using T = float;
-#endif
-    int N;
-    if (argc == 2) {
-       N = atoi(argv[1]);
-    }
-    else {
-       print("Usage: \n");
-       print("      ./exe N \n", argv[0]);
-       exit(-1);
-    }
+// #ifdef DOUBLE_VERSION
+//     using T = double;
+// #elif defined(FLOAT_VERSION)
+//     using T = float;
+// #endif
+//     int N;
+//     if (argc == 2) {
+//        N = atoi(argv[1]);
+//     }
+//     else {
+//        print("Usage: \n");
+//        print("      ./exe N \n", argv[0]);
+//        exit(-1);
+//     }
+    cmdline::parser cmd_parser;
+    cmd_parser.add<string>("precision", 0, "matrix element precision", true, "double");
+    cmd_parser.add<int>("size", 0, "matrix size", true, 100);
+    cmd_parser.parse_check(argc, argv);
 
+    cout << "precision:" << cmd_parser.get<string>("precision") <<
+         endl << "matrix size:" << cmd_parser.get<int>("size");
 
-    timer<double> t_j;
-    t_j.tic();
-    if (N==100) run_finite_difference<T,100>();
-    if (N==150) run_finite_difference<T,150>();
-    if (N==200) run_finite_difference<T,200>();
-    //if (N==1000) run_finite_difference<T,1000>();
-    t_j.toc();
+    // timer<double> t_j;
+    // t_j.tic();
+    // if (N==100) run_finite_difference<T,100>();
+    // if (N==150) run_finite_difference<T,150>();
+    // if (N==200) run_finite_difference<T,200>();
+    // //if (N==1000) run_finite_difference<T,1000>();
+    // t_j.toc();
 
     return 0;
 }

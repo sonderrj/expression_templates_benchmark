@@ -4,39 +4,6 @@ using namespace blaze;
 using namespace bench_views;
 
 
-template<typename T, size_t nn, bool SO, AlignmentFlag AL, PaddingFlag PD>
-T finite_difference_seq_impl(StaticMatrix<T,nn,nn,SO,AL,PD> &u) {
-
-    StaticMatrix<T,nn,nn,SO,AL,PD> u_old = u;
-    constexpr int num = nn;
-
-    // asm("#BEGINN");
-    submatrix(u, 1,1,num-2,num-2) =
-        ((  submatrix(u_old,0,1,num-2,num-2) + submatrix(u_old,2,1,num-2,num-2) +
-            submatrix(u_old,1,0,num-2,num-2) + submatrix(u_old,1,2,num-2,num-2) )*4.0 +
-            submatrix(u_old,0,0,num-2,num-2) + submatrix(u_old,0,2,num-2,num-2) +
-            submatrix(u_old,2,0,num-2,num-2) + submatrix(u_old,2,2,num-2,num-2) ) /20.0;
-    // asm("#ENDD");
-
-    return norm(u-u_old);
-}
-
-
-template<typename T, size_t nn, bool SO, AlignmentFlag AL, PaddingFlag PD>
-T finite_difference_fseq_impl(StaticMatrix<T,nn,nn,SO,AL,PD> &u) {
-
-    StaticMatrix<T,nn,nn,SO,AL,PD> u_old = u;
-    constexpr int num = nn;
-
-    submatrix<1,1,num-2,num-2>(u) =
-        ((  submatrix<0,1,num-2,num-2>(u_old) + submatrix<2,1,num-2,num-2>(u_old) +
-            submatrix<1,0,num-2,num-2>(u_old) + submatrix<1,2,num-2,num-2>(u_old) )*4.0 +
-            submatrix<0,0,num-2,num-2>(u_old) + submatrix<0,2,num-2,num-2>(u_old) +
-            submatrix<2,0,num-2,num-2>(u_old) + submatrix<2,2,num-2,num-2>(u_old) ) /20.0;
-
-    return norm(u-u_old);
-}
-
 
 template<typename T, int num>
 void run_finite_difference() {
@@ -56,7 +23,14 @@ void run_finite_difference() {
     column(u,num-1) = sin(x)*std::exp(-pi);
 
     while (iter <100000 && err>1e-6) {
-        err = finite_difference_seq_impl(u);
+        StaticMatrix<T,num,num> u_old = u;
+        submatrix(u, 1,1,num-2,num-2) =
+        ((  submatrix(u_old,0,1,num-2,num-2) + submatrix(u_old,2,1,num-2,num-2) +
+            submatrix(u_old,1,0,num-2,num-2) + submatrix(u_old,1,2,num-2,num-2) )*4.0 +
+            submatrix(u_old,0,0,num-2,num-2) + submatrix(u_old,0,2,num-2,num-2) +
+            submatrix(u_old,2,0,num-2,num-2) + submatrix(u_old,2,2,num-2,num-2) ) /20.0;
+
+        err = norm(u-u_old);
         // err = finite_difference_fseq_impl(u);
         iter++;
     }
